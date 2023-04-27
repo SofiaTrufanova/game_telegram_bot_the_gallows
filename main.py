@@ -14,7 +14,9 @@ async def process_start_command(message: types.Message):
     globals.Globals.word = 'anime2'
     globals.Globals.count = 0
     globals.Globals.open_word = ['-'] * len(globals.Globals.word)
-    await message.reply("Привет! Слово загаданно\n")
+    await message.reply("Игра началась!")
+    await sofia_trufanova_gallows_game_bot.send_photo(message.from_user.id,
+                                                      open(globals.Globals.path_of_pictures[0], 'rb'))
 
 
 @dp.message_handler(commands=['help'])
@@ -22,19 +24,12 @@ async def process_help_command(message: types.Message):
     await message.reply("Напиши мне что-нибудь, и я повторю за тобой!")
 
 
-max_moves = 10
-wrong_moves = 0
-
-
-async def menu(message: types.Message):
-    await message.reply("Игра завершена")
-
-
 @dp.message_handler()
 async def echo_message(msg: types.Message):
     if globals.Globals.count == 1:
         await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, "Игра не начата, нажмите на /start")
         return
+
     letter = msg.text
     text = ''
     if letter in globals.Globals.word:
@@ -44,11 +39,13 @@ async def echo_message(msg: types.Message):
     else:
         text = 'wrong'
         globals.Globals.wrong_moves += 1
-    if globals.Globals.wrong_moves > globals.Globals.max_moves:
+    if globals.Globals.wrong_moves >= globals.Globals.max_moves:
         text = 'bad game'
         globals.Globals.count += 1
         globals.Globals.wrong_moves = 0
         await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, text)
+        await sofia_trufanova_gallows_game_bot.send_photo(msg.from_user.id,
+                                                          open(globals.Globals.path_of_pictures[11], 'rb'))
         return
     if '-' not in globals.Globals.open_word:
         text = 'you won'
@@ -61,6 +58,9 @@ async def echo_message(msg: types.Message):
         text_before += globals.Globals.open_word[i]
     text = text + '\n' + text_before
     await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, text)
+    await sofia_trufanova_gallows_game_bot.send_photo(msg.from_user.id,
+                                                      open(globals.Globals.path_of_pictures[
+                                                               globals.Globals.wrong_moves], 'rb'))
 
 
 executor.start_polling(dp)
