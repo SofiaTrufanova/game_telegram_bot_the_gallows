@@ -1,9 +1,4 @@
 class Globals:
-    open_word = []
-    max_moves = 10
-    wrong_moves = 0
-    word = 'anime'
-    count = 0
     path_of_pictures = [
         'pictures/0.png',
         'pictures/1.png',
