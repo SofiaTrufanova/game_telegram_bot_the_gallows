@@ -121,6 +121,10 @@ async def echo_message(msg: types.Message):
 
     letter = msg.text.lower()
 
+    if not letter.isalpha() or len(letter) > 1:
+        await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, "Некорректный ввод. Попробуйте ещё раз.")
+        return
+
     if letter in globals.Globals.Users[msg.from_user.id].was_used:
         await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id,
                                                             "Вы уже вводили эту букву. Попробуйте ещё раз.")
@@ -133,9 +137,6 @@ async def echo_message(msg: types.Message):
                                                         f"Вы уже ввели буквы: {(', ').join(globals.Globals.Users[msg.from_user.id].was_used)}")
 
     text = ''
-    if not letter.isalpha() or len(letter) > 1:
-        await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, "Некорректный ввод. Попробуйте ещё раз.")
-        return
     text = inserting_letter(letter, msg, text)
     if globals.Globals.Users[msg.from_user.id].wrong_moves >= 10:
         await bad_game(msg)
