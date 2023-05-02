@@ -14,7 +14,6 @@ class Globals:
     class User:
         '''Класс пользователя - запоминает, кто именно отправил сообщение.
         Используется для того, чтобы бот мог работать в нескольких сессия одновременно.'''
-
         def __init__(self, id):
             self.user_id = id
             self.word = ""
@@ -22,6 +21,7 @@ class Globals:
             self.size_of_word = 0
             self.open_word = []
             self.count = 0
+            self.was_used = []
 
         def new_word(self, dictionary):
             self.word = random_word(dictionary)
