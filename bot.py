@@ -115,6 +115,10 @@ async def echo_message(msg: types.Message):
         await sofia_trufanova_gallows_game_bot.send_message(msg.from_user.id, "Игра не начата, нажмите на /start")
         return
 
+    if msg.text.lower() == globals.Globals.Users[msg.from_user.id].word.lower():
+        await good_game(msg)
+        return
+
     letter = msg.text.lower()
 
     if letter in globals.Globals.Users[msg.from_user.id].was_used:
