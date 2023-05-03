@@ -181,6 +181,9 @@ async def echo_message(msg: types.Message):
         await game(msg, msg.from_user.id)
     else:
         if globals.Globals.Users[msg.chat.id].word == "" and globals.Globals.Users[msg.chat.id].in_game:
+            if not msg.text.isalpha():
+                await sofia_trufanova_gallows_game_bot.send_message(msg.chat.id, 'Введите одно слово на русском языке.')
+                return
             globals.Globals.Users[msg.chat.id].word = msg.text
             globals.Globals.Users[msg.chat.id].size_of_word = len(globals.Globals.Users[msg.chat.id].word)
             globals.Globals.Users[msg.chat.id].open_word = ['-'] * globals.Globals.Users[msg.chat.id].size_of_word
