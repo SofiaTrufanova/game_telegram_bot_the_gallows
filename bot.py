@@ -154,7 +154,7 @@ async def game(msg, id):
 
     text = ''
     text = inserting_letter(letter, msg, text, id)
-    if globals.Globals.Users[id].wrong_moves >= 10:
+    if globals.Globals.Users[id].wrong_moves >= globals.Globals.max_moves:
         await bad_game(msg, id)
         return
     if '-' not in globals.Globals.Users[id].open_word:
