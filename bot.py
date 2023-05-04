@@ -11,11 +11,13 @@ dp = Dispatcher(sofia_trufanova_gallows_game_bot)
 
 @dp.message_handler(commands=['help'])
 async def bot_documentation(msg: types.Message):
+    '''Обработка команды /help'''
     await sofia_trufanova_gallows_game_bot.send_message(msg.chat.id, globals.Globals.documentation_text)
 
 
 @dp.message_handler(commands=['stop'])
 async def bot_stop(msg: types.Message):
+    '''Обработка команды /stop'''
     globals.Globals.Users[msg.chat.id] = globals.Globals.User(msg.chat.id)
     await sofia_trufanova_gallows_game_bot.send_message(msg.chat.id, "Игра завершена.")
 
@@ -103,62 +105,73 @@ def inserting_letter(letter, msg, text, id):
     return text
 
 
-async def bad_game(msg, id):
-    '''Вызывается при проигрыше'''
-    text = f'Ты програл(а)... Загаданное слово: {globals.Globals.Users[id].word}. \n ' \
-           f'Чтобы начать новую игру, нажми /start'
+async def end_game(id, text):
+    '''Меняет счётчики и вызывает текст окончания игры'''
     globals.Globals.Users[id].count += 1
     globals.Globals.Users[id].wrong_moves = 0
     globals.Globals.Users[id].in_game = False
     await sofia_trufanova_gallows_game_bot.send_message(id, text)
+
+
+async def bad_game(msg, id):
+    '''Вызывается при проигрыше - обрабатывает конец игры'''
+    text = f'Ты програл(а)... Загаданное слово: {globals.Globals.Users[id].word}. \n' \
+           f'Чтобы начать новую игру, нажми /start'
+    await end_game(id, text)
     await sofia_trufanova_gallows_game_bot.send_photo(id,
                                                       open(globals.Globals.path_of_pictures[11], 'rb'))
 
 
 async def good_game(msg, id):
-    '''Вызывается при выигрыше'''
-    text = f'Ты выиграл(а)! Загаданное слово: {globals.Globals.Users[id].word}. \n ' \
+    '''Вызывается при выигрыше - обрабатывает конец игры'''
+    text = f'Ты выиграл(а)! Загаданное слово: {globals.Globals.Users[id].word}. \n' \
            f'Чтобы начать новую игру, нажми /start'
-    globals.Globals.Users[id].count += 1
-    globals.Globals.Users[id].wrong_moves = 0
-    globals.Globals.Users[id].in_game = False
-    await sofia_trufanova_gallows_game_bot.send_message(id, text)
+    await end_game(id, text)
+
+
+async def before_game_letter_processing(msg, id):
+    '''Преобработка сообщения - проверка на то, что игра может продолжаться. Возвращает True,
+    если это невозможно'''
+    if globals.Globals.Users[id].count == 1:
+        await sofia_trufanova_gallows_game_bot.send_message(id, "Игра не начата, нажмите на /start")
+        return True
+    if msg.text.lower() == globals.Globals.Users[id].word.lower():
+        await good_game(msg, id)
+        return True
+    letter = msg.text.lower()
+    if not letter.isalpha() or len(letter) > 1:
+        await sofia_trufanova_gallows_game_bot.send_message(id, "Некорректный ввод. Попробуйте ещё раз.")
+        return True
+    if letter in globals.Globals.Users[id].was_used:
+        await sofia_trufanova_gallows_game_bot.send_message(id,
+                                                            "Вы уже вводили эту букву. Попробуйте ещё раз.")
+        return True
+    return False
+
+
+async def is_it_end_of_game(msg, id):
+    '''Проверяет, не конец ли это игры'''
+    if globals.Globals.Users[id].wrong_moves >= globals.Globals.max_moves:
+        await bad_game(msg, id)
+        return True
+    if '-' not in globals.Globals.Users[id].open_word:
+        await good_game(msg, id)
+        return True
+    return False
 
 
 async def game(msg, id):
     '''Обрабатывает введённые буквы'''
-    if globals.Globals.Users[id].count == 1:
-        await sofia_trufanova_gallows_game_bot.send_message(id, "Игра не начата, нажмите на /start")
+    if await before_game_letter_processing(msg, id):
         return
-
-    if msg.text.lower() == globals.Globals.Users[id].word.lower():
-        await good_game(msg, id)
-        return
-
     letter = msg.text.lower()
-
-    if not letter.isalpha() or len(letter) > 1:
-        await sofia_trufanova_gallows_game_bot.send_message(id, "Некорректный ввод. Попробуйте ещё раз.")
-        return
-
-    if letter in globals.Globals.Users[id].was_used:
-        await sofia_trufanova_gallows_game_bot.send_message(id,
-                                                            "Вы уже вводили эту букву. Попробуйте ещё раз.")
-        return
-
     globals.Globals.Users[id].was_used.append(letter)
     globals.Globals.Users[id].was_used.sort()
-
     await sofia_trufanova_gallows_game_bot.send_message(id,
                                                         f"Вы уже ввели буквы: {(', ').join(globals.Globals.Users[id].was_used)}")
-
     text = ''
     text = inserting_letter(letter, msg, text, id)
-    if globals.Globals.Users[id].wrong_moves >= globals.Globals.max_moves:
-        await bad_game(msg, id)
-        return
-    if '-' not in globals.Globals.Users[id].open_word:
-        await good_game(msg, id)
+    if await is_it_end_of_game(msg, id):
         return
     text_before = ''
     for i in range(globals.Globals.Users[id].size_of_word):

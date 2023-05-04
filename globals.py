@@ -42,6 +42,7 @@ class Globals:
             self.in_game = False
 
         def new_word(self, dictionary):
+            '''Генерирует новое слово для игры'''
             self.word = random_word(dictionary)
             self.wrong_moves = 0
             self.size_of_word = len(self.word)
